@@ -4,6 +4,7 @@ module GestionEvents
 , parseEvents
 , keyDown
 , firing
+, rebooting
 ) where
 
 import Prelude hiding ((.), id, null, filter, until)
@@ -54,6 +55,8 @@ instance (Eq a) => Eq (Event a) where
 firing :: Event SDL.Keysym
 firing = Event (space)
 
+rebooting :: Event String
+rebooting = Event ("reboot!")
 
 deriving instance Ord SDL.Keysym
 
