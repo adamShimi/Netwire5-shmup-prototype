@@ -35,6 +35,7 @@ parseEvents keysDown = do
         SDL.KeyUp k -> parseEvents (delete k keysDown)
         _ -> parseEvents keysDown
 
+--Code from ocharles
 keyDown :: SDL.SDLKey -> Set SDL.Keysym -> Bool
 keyDown k = not . null . filter ((== k) . SDL.symKey)
 
