@@ -232,7 +232,12 @@ bullets_mov ::
      [Bullet]
 bullets_mov = proc pos_boulettes -> do
     new_pos_bullets <- step_many_wires -< pos_boulettes 
-    returnA -< (List.filter (\(Bullet (x,y) _) -> y > 0.0) new_pos_bullets)
+    returnA -< 
+        (
+        List.filter 
+            (\(Bullet (x,y) _) -> (y > 0.0)&&(x > 0)&&(x < (fromIntegral window_width))&&(y < (fromIntegral window_height)))
+            new_pos_bullets
+        )
 
 
 
