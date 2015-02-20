@@ -160,7 +160,7 @@ bouncing =
                  (
                  (integral x . 0.0)
                  &&&
-                 (integral ((y - 700.0*(realToFrac(dtime ds)))+31.0) . 700.0)
+                 (integral ((y - 700.0*(realToFrac(dtime ds)))+20.0) . 700.0)
                  )
              ,
              bouncing
@@ -183,7 +183,7 @@ angle_bouncing angle = WGen $ \ds (Right ((x,y),!w)) -> do
             (
             (integral x . ((pure $ cos (angle))*700.0))
             &&&
-            (integral ((y - 700.0*(realToFrac(dtime ds)))+31.0) . ((pure $ sin (angle))*700.0))
+            (integral ((y - 700.0*(realToFrac(dtime ds))) + 20.0) . ((pure $ sin (angle))*700.0))
             )
         ,
         angle_bouncing angle
@@ -210,7 +210,7 @@ boss_bouncing angle sens = WGen $ \ds (Right ((x,y),!w)) -> do
                 (
                 (integral x . ((pure $ cos (angle))*700.0))
                 &&&
-                (integral ((y - 700.0*(realToFrac(dtime ds)))+31.0) . ((pure $ sin (angle))*700.0))
+                (integral ((y - 700.0*(realToFrac(dtime ds)))+20.0) . ((pure $ sin (angle))*700.0))
                 )
             ,
             (boss_bouncing angle ((-1)*sens))
@@ -222,7 +222,7 @@ boss_bouncing angle sens = WGen $ \ds (Right ((x,y),!w)) -> do
                 (
                 (integral x . ((pure $ cos (angle))*700.0))
                 &&&
-                (integral ((y - 700.0*(realToFrac(dtime ds)))+31.0) . ((pure $ sin (angle))*700.0))
+                (integral ((y - 700.0*(realToFrac(dtime ds)))+20.0) . ((pure $ sin (angle))*700.0))
                 )
             ,
             (boss_bouncing (angle + sens*0.1) sens)
