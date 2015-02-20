@@ -44,7 +44,7 @@ data Frame = Frame { player_pos :: Position
                    , bullets :: [Bullet]
                    , ennemies :: [Ennemy]
                    , pressed_keys :: Set SDL.Keysym
-                   , game_wire :: Wire (Timed NominalDiffTime ()) () IO Frame (Position, [Bullet], [Ennemy], Set SDL.Keysym)
+                   , game_wire :: Wire (Timed NominalDiffTime ()) () IO Frame (Position, [Bullet], [Ennemy], Set SDL.Keysym, Event(String))
                    }
 
 data Bullet = Bullet { bullet_pos :: Position

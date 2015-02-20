@@ -34,7 +34,12 @@ game_loop screen game_state session= do
         (ds, s') <- stepSession session
         let game_state_with_new_keys = Frame (player_pos game_state) (bullets game_state) (ennemies game_state) new_pressed_keys (game_wire game_state)
         (resultat, game_wire') <- stepWire (game_wire game_state) ds (Right game_state_with_new_keys)
-        let (new_player_pos, new_bullets, new_ennemies, _) = either (const (player_pos game_state, bullets game_state, ennemies game_state, pressed_keys game_state)) id resultat
+        let (new_player_pos, new_bullets, new_ennemies, _, isRebooting) = either (const (player_pos game_state, bullets game_state, ennemies game_state, pressed_keys game_state, NoEvent)) id resultat
         let new_game_state = Frame new_player_pos new_bullets new_ennemies new_pressed_keys game_wire'
-        display screen new_game_state
-        game_loop screen new_game_state s'
+        if isRebooting == rebooting
+        then do
+            new_etat_init <- parser
+            game_loop screen new_etat_init clockSession_
+        else do
+            display screen new_game_state
+            game_loop screen new_game_state s'

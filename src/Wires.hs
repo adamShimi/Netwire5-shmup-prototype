@@ -34,14 +34,26 @@ game ::
      () 
      IO 
      Frame 
-     (Position, [Bullet], [Ennemy], Set SDL.Keysym)
+     (Position, [Bullet], [Ennemy], Set SDL.Keysym, Event(String))
 game = proc game_state -> do
     new_player_pos <- player_mov -< (pressed_keys game_state, player_pos game_state)
     new_bullet <- fire -< (pressed_keys game_state,player_pos game_state)
     (reflected_bullets,new_ennemies) <- collide -< (new_bullet ++ (bullets game_state), ennemies game_state)
     new_bullets <- bullets_mov -< reflected_bullets
-    returnA -< (new_player_pos, new_bullets, List.union new_ennemies (ennemies game_state), pressed_keys game_state)
+    reboot <- is_rebooting -< pressed_keys game_state
+    returnA -< (new_player_pos, new_bullets, List.union new_ennemies (ennemies game_state), pressed_keys game_state, reboot)
 
+
+is_rebooting ::
+    Wire
+     (Timed NominalDiffTime ()) 
+     () 
+     IO 
+     (Set SDL.Keysym) 
+     (Event (String))
+is_rebooting =
+    once . (WConst (Right rebooting)) . when (keyDown SDL.SDLK_RETURN) 
+    <|> never
 
 fire :: 
     Wire 
