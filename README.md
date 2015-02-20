@@ -14,7 +14,7 @@ To build this project, you only need to install Netwire 5 and SDL package for Ha
 Configuration
 -------------
 
-By writing in the configMinimumViableProduct file, you can modify ennemies in the game.
+By creating the configMinimumViableProduct file using the model given by exampleConfigMinimumViableProduct, you can modify ennemies in the game.
 Comments lines in it must be preceded by --
 
 Soon-to-be-features
