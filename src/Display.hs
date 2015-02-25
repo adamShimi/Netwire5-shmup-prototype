@@ -22,10 +22,10 @@ display screen game_state = do
     let (x,y) = player_pos game_state
     (SDL.mapRGB . SDL.surfaceGetPixelFormat) screen 255 255 255 >>= SDL.fillRect screen Nothing
     displaySurface screen (SDL.Color 0 50 200) (fromIntegral side,fromIntegral side) (player_pos game_state)
-    mapM_ 
+    mapM_
         (\(Bullet pos _ ) -> displaySurface screen (SDL.Color 255 0 0) (4,4) pos)
         (bullets game_state)
-    mapM_ 
+    mapM_
         (\(Ennemy pos dim _) -> displaySurface screen (SDL.Color 0 255 0) dim pos)
         (ennemies game_state)
     SDL.flip screen
@@ -35,6 +35,6 @@ display screen game_state = do
 
 displaySurface :: SDL.Surface -> SDL.Color -> Position -> Position -> IO (Bool)
 displaySurface screen (SDL.Color red green blue) (w,h) (x,y) = do
-    (SDL.mapRGB . SDL.surfaceGetPixelFormat) screen red green blue >>= 
+    (SDL.mapRGB . SDL.surfaceGetPixelFormat) screen red green blue >>=
         SDL.fillRect screen (Just $ SDL.Rect (round x) (round y) (round w) (round h))
 

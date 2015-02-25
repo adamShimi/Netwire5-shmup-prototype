@@ -1,5 +1,5 @@
 module Parser
-( parser 
+( parser
 ) where
 
 import Data.Set (empty)
@@ -17,10 +17,10 @@ parser = do
 
 
 parsingEnnemies :: [String] -> [Ennemy]
-parsingEnnemies [] = []	
+parsingEnnemies [] = []
 parsingEnnemies configLines@(x:xs) =
-    (Ennemy 
-        pos 
+    (Ennemy
+        pos
         dim
         (case (list_of_words !! 2) of
             "bouncing" -> bouncing
@@ -37,4 +37,4 @@ parsingEnnemies configLines@(x:xs) =
     where list_of_words  = ((drop 1) . words) x
           pos = read (list_of_words !! 0)
           dim = read (list_of_words !! 1)
-    
+

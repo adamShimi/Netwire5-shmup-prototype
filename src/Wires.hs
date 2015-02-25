@@ -28,12 +28,12 @@ import GestionEvents
 
 
 
-game :: 
-    Wire 
-     (Timed NominalDiffTime ()) 
-     () 
-     IO 
-     Frame 
+game ::
+    Wire
+     (Timed NominalDiffTime ())
+     ()
+     IO
+     Frame
      (Position, [Bullet], [Ennemy], Set SDL.Keysym, Event(String))
 game = proc game_state -> do
     new_player_pos <- player_mov -< (pressed_keys game_state, player_pos game_state)
@@ -46,41 +46,41 @@ game = proc game_state -> do
 
 is_rebooting ::
     Wire
-     (Timed NominalDiffTime ()) 
-     () 
-     IO 
-     (Set SDL.Keysym) 
+     (Timed NominalDiffTime ())
+     ()
+     IO
+     (Set SDL.Keysym)
      (Event (String))
 is_rebooting =
-    once . (WConst (Right rebooting)) . when (keyDown SDL.SDLK_RETURN) 
+    once . (WConst (Right rebooting)) . when (keyDown SDL.SDLK_RETURN)
     <|> never
 
-fire :: 
-    Wire 
-     (Timed NominalDiffTime ()) 
-     () 
-     IO 
-     ((Set SDL.Keysym), (Double, Double)) 
+fire ::
+    Wire
+     (Timed NominalDiffTime ())
+     ()
+     IO
+     ((Set SDL.Keysym), (Double, Double))
      [Bullet]
 fire =
     let is_firing = proc (keyPressed, (x,y)) -> do
             is_shooting -< keyPressed
-            returnA -< 
+            returnA -<
                 [
-                Bullet 
-                (x + (fromIntegral side)/2 - 2,y) 
+                Bullet
+                (x + (fromIntegral side)/2 - 2,y)
                 ((integral (x + (fromIntegral side)/2 - 2) . 0.0)&&&(integral y . (-700.0)))
                 ]
     in
     is_firing <|> pure []
 
 
-is_shooting :: 
-    Wire 
-     (Timed NominalDiffTime ()) 
-     () 
-     IO 
-     (Set SDL.Keysym) 
+is_shooting ::
+    Wire
+     (Timed NominalDiffTime ())
+     ()
+     IO
+     (Set SDL.Keysym)
      (Event (SDL.Keysym))
 is_shooting =
     when (keyDown SDL.SDLK_s) >>> ((when (/= Event.NoEvent) . once . (WConst (Right firing)))--> after 0.1 >>> is_shooting)
@@ -92,22 +92,22 @@ is_shooting =
 
 
 
-collide :: 
-    Wire 
-     (Timed NominalDiffTime ()) 
-     () 
-     IO 
-     ([Bullet],[Ennemy]) 
+collide ::
+    Wire
+     (Timed NominalDiffTime ())
+     ()
+     IO
+     ([Bullet],[Ennemy])
      ([Bullet],[Ennemy])
 collide = WGen $ \ds (Right (!bul,!en)) -> do
     let (colliding, not_colliding) = List.partition (\(Bullet (x,y) _ , Ennemy (s,q) (w,h) _) -> (x+4 >= s)&&(x <= (s+w))&&(y+4 >= q)&&(y <= (q+h))) [(a,b) | a <- bul, b <- en]
-    after_collision_either <- 
-        mapM 
-            (\(b,e) -> stepWire (bounce e) ds (Right (bullet_pos b,transition b))) 
+    after_collision_either <-
+        mapM
+            (\(b,e) -> stepWire (bounce e) ds (Right (bullet_pos b,transition b)))
             colliding
-    return $ 
+    return $
         (
-        Right 
+        Right
             (
                 List.union (map (fst) $ after_collision colliding after_collision_either) (List.nub $ map (fst) not_colliding)
             ,
@@ -119,21 +119,21 @@ collide = WGen $ \ds (Right (!bul,!en)) -> do
 
 
 
-after_collision :: 
-    [(Bullet,Ennemy)] -> 
-    [( 
+after_collision ::
+    [(Bullet,Ennemy)] ->
+    [(
      Either () (Wire (Timed NominalDiffTime ()) () IO () Position)
-     , 
-     Wire 
-      (Timed NominalDiffTime ()) 
-      () 
-      IO 
-      (Position,(Wire (Timed NominalDiffTime ()) () IO () Position)) 
+     ,
+     Wire
+      (Timed NominalDiffTime ())
+      ()
+      IO
+      (Position,(Wire (Timed NominalDiffTime ()) () IO () Position))
       (Wire (Timed NominalDiffTime ()) () IO () Position)
-    )] -> 
+    )] ->
     [(Bullet,Ennemy)]
-after_collision = 
-    zipWith 
+after_collision =
+    zipWith
         (\(b,e) (result_wire, stepped_wire) -> (Bullet (bullet_pos b) (either (const (WConst (Right (0.0,0.0)))) id result_wire), Ennemy (ennemy_pos e) (ennemy_dim e) stepped_wire))
 
 
@@ -144,19 +144,19 @@ after_collision =
 
 
 -- Classic straight rebound
-bouncing :: 
-    Wire 
-     (Timed NominalDiffTime ()) 
-     () 
-     IO 
-     (Position,(Wire (Timed NominalDiffTime ()) () IO () Position)) 
+bouncing ::
+    Wire
+     (Timed NominalDiffTime ())
+     ()
+     IO
+     (Position,(Wire (Timed NominalDiffTime ()) () IO () Position))
      (Wire (Timed NominalDiffTime ()) () IO () Position)
-bouncing = 
-    WGen $ 
+bouncing =
+    WGen $
         \ds (Right ((x,y),!w)) -> do
-        return $ 
+        return $
              (
-             Right 
+             Right
                  (
                  (integral x . 0.0)
                  &&&
@@ -168,18 +168,18 @@ bouncing =
 
 
 -- Rebound with an angle, given as a parameter
-angle_bouncing :: 
-    Double -> 
-    Wire 
-     (Timed NominalDiffTime ()) 
-     () 
-     IO 
-     (Position,(Wire (Timed NominalDiffTime ()) () IO () Position)) 
+angle_bouncing ::
+    Double ->
+    Wire
+     (Timed NominalDiffTime ())
+     ()
+     IO
+     (Position,(Wire (Timed NominalDiffTime ()) () IO () Position))
      (Wire (Timed NominalDiffTime ()) () IO () Position)
 angle_bouncing angle = WGen $ \ds (Right ((x,y),!w)) -> do
-    return $ 
+    return $
         (
-        Right 
+        Right
             (
             (integral x . ((pure $ cos (angle))*700.0))
             &&&
@@ -192,21 +192,21 @@ angle_bouncing angle = WGen $ \ds (Right ((x,y),!w)) -> do
 
 
 --Funny cyclical rebound, like a boss
-boss_bouncing :: 
-    Double -> 
-    Double -> 
-    Wire 
-     (Timed NominalDiffTime ()) 
-     () 
-     IO 
-     (Position,(Wire (Timed NominalDiffTime ()) () IO () Position)) 
+boss_bouncing ::
+    Double ->
+    Double ->
+    Wire
+     (Timed NominalDiffTime ())
+     ()
+     IO
+     (Position,(Wire (Timed NominalDiffTime ()) () IO () Position))
      (Wire (Timed NominalDiffTime ()) () IO () Position)
 boss_bouncing angle sens = WGen $ \ds (Right ((x,y),!w)) -> do
     if (angle + sens*0.1 >= pi) || (angle + sens*0.1 <= 0.0)
     then
-        return $ 
+        return $
             (
-            Right 
+            Right
                 (
                 (integral x . ((pure $ cos (angle))*700.0))
                 &&&
@@ -216,9 +216,9 @@ boss_bouncing angle sens = WGen $ \ds (Right ((x,y),!w)) -> do
             (boss_bouncing angle ((-1)*sens))
             )
     else
-        return $ 
+        return $
             (
-            Right 
+            Right
                 (
                 (integral x . ((pure $ cos (angle))*700.0))
                 &&&
@@ -235,18 +235,18 @@ boss_bouncing angle sens = WGen $ \ds (Right ((x,y),!w)) -> do
 
 
 -- Wire stepping all the bullets
-bullets_mov :: 
-    Wire 
-     (Timed NominalDiffTime ()) 
-     () 
-     IO 
-     [Bullet] 
+bullets_mov ::
+    Wire
+     (Timed NominalDiffTime ())
+     ()
+     IO
+     [Bullet]
      [Bullet]
 bullets_mov = proc pos_boulettes -> do
-    new_pos_bullets <- step_many_wires -< pos_boulettes 
-    returnA -< 
+    new_pos_bullets <- step_many_wires -< pos_boulettes
+    returnA -<
         (
-        List.filter 
+        List.filter
             (\(Bullet (x,y) _) -> (y > 0.0)&&(x > 0)&&(x < (fromIntegral window_width))&&(y < (fromIntegral window_height)))
             new_pos_bullets
         )
@@ -254,16 +254,16 @@ bullets_mov = proc pos_boulettes -> do
 
 
 -- Multiple stepping for the bullets
-step_many_wires :: 
-    Wire 
-     (Timed NominalDiffTime ()) 
-     () 
-     IO 
-     [Bullet] 
+step_many_wires ::
+    Wire
+     (Timed NominalDiffTime ())
+     ()
+     IO
+     [Bullet]
      [Bullet]
 step_many_wires = WGen $ \ds (Right w) -> do
     after <- mapM (\x -> stepWire (transition x) ds (Right ())) w
-    return $ 
+    return $
         (
         Right [Bullet ((either (const (0.0,0.0)) id) x) y | (x,y) <- after]
         ,
@@ -279,10 +279,10 @@ step_many_wires = WGen $ \ds (Right w) -> do
 -- Wire corresponding to the overarching player movement, with integration of the speed in the two coordinates
 
 player_mov ::
-     Wire 
-      (Timed NominalDiffTime ()) 
-      () 
-      IO 
+     Wire
+      (Timed NominalDiffTime ())
+      ()
+      IO
       (Set SDL.Keysym,Position)
       Position
 player_mov = (integral start_x . speed_x) &&& (integral start_y . speed_y)
@@ -291,23 +291,23 @@ player_mov = (integral start_x . speed_x) &&& (integral start_y . speed_y)
 
 -- Wire corresponding to the speed in the x coordinate
 
-speed_x :: 
-    Wire 
+speed_x ::
+    Wire
      (Timed NominalDiffTime ())
-     () 
-     IO 
-     (Set SDL.Keysym,Position) 
+     ()
+     IO
+     (Set SDL.Keysym,Position)
      Double
 speed_x = proc (keyPressed, (x, y)) -> do
-    diffX <- 
-        (pure (-100) . when (keyDown SDL.SDLK_LEFT) <|> pure 0) 
-        &&& 
-        (pure 100 . when (keyDown SDL.SDLK_RIGHT) <|> pure 0) 
+    diffX <-
+        (pure (-100) . when (keyDown SDL.SDLK_LEFT) <|> pure 0)
+        &&&
+        (pure 100 . when (keyDown SDL.SDLK_RIGHT) <|> pure 0)
         -< keyPressed
-    finalX <- 
-        pure (0) . when ((>) 0.0) 
-        <|> pure (0) . when ((<) (fromIntegral (window_width - side))) 
-        <|> pure 1 
+    finalX <-
+        pure (0) . when ((>) 0.0)
+        <|> pure (0) . when ((<) (fromIntegral (window_width - side)))
+        <|> pure 1
         -< x + 2*(fst diffX + snd diffX)/100
     returnA -< finalX*(fst diffX + snd diffX)
 
@@ -315,23 +315,23 @@ speed_x = proc (keyPressed, (x, y)) -> do
 
 -- Wire corresponding to the speed in the y coordinate
 
-speed_y :: 
-    Wire 
-     (Timed NominalDiffTime ()) 
-     () 
-     IO 
-     (Set SDL.Keysym,Position) 
+speed_y ::
+    Wire
+     (Timed NominalDiffTime ())
+     ()
+     IO
+     (Set SDL.Keysym,Position)
      Double
 speed_y = proc (keyPressed, (x, y)) -> do
-    diffY <- 
-        (pure (-100) . when (keyDown SDL.SDLK_UP) <|> pure 0) 
-        &&& 
-        (pure 100 . when (keyDown SDL.SDLK_DOWN) <|> pure 0) 
+    diffY <-
+        (pure (-100) . when (keyDown SDL.SDLK_UP) <|> pure 0)
+        &&&
+        (pure 100 . when (keyDown SDL.SDLK_DOWN) <|> pure 0)
         -< keyPressed
-    finalY <- 
-        pure (0) . when ((>) 0.0) 
-        <|> pure (0) . when ((<) (fromIntegral (window_height - side))) 
-        <|> pure 1 
+    finalY <-
+        pure (0) . when ((>) 0.0)
+        <|> pure (0) . when ((<) (fromIntegral (window_height - side)))
+        <|> pure 1
         -< y + 2*(fst diffY + snd diffY)/100
     returnA -< finalY*(fst diffY + snd diffY)
 
